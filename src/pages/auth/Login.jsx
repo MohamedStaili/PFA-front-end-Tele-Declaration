@@ -1,7 +1,29 @@
 import Logo from "../../assets/logo_onicl.png";
-import useAuthStore from "../../stores/authStore.js";
+import {useFormik} from "formik";
+import* as Yup from "yup";
+import {useLogin} from "../../api/auth/auth.queries.js";
 const Login = () => {
-    const {setToken, setUser} = useAuthStore();
+    const initialValues = {email: "", password: ""};
+    const formik = useFormik({
+        initialValues: initialValues,
+        validationSchema: Yup.object({
+            email: Yup
+                .string()
+                .required("Email is required")
+                .email("this is email not valid"),
+            password: Yup
+                .string()
+                .min(8, "8 lettres minimum")
+                .required("Password is required")
+        }),
+        onSubmit: async (values, { resetForm }) => {
+            useLogin(values);
+        }
+    })
+    const getFieldMeta = (name) => ({
+        touched: formik.touched[name],
+        error: formik.errors[name],
+    });
 
     return (
         <div className="min-h-screen flex flex-col justify-center items-center px-6 py-12 lg:px-8 bg-gray-50 dark:bg-gray-900">
@@ -26,13 +48,26 @@ const Login = () => {
                             Email address
                         </label>
                         <input
+                            id="email"
+                            name="email"
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            value={formik.values.email}
                             type="email"
                             required
-                            className="mt-2 w-full rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+                            className={`mt-2 w-full rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white
                          border border-gray-300 dark:border-gray-700
                          px-3 py-2 placeholder-gray-500 dark:placeholder-gray-400
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500
+                            ${
+                                getFieldMeta("email").error && getFieldMeta("email").touched
+                                    ? "border-red-500"
+                                    : "border-gray-300 dark:border-gray-600"
+                            }
+                            `}
                         />
+                        {getFieldMeta("email").error && getFieldMeta("email").touched && (
+                            <p className="text-red-500 text-sm mt-1">{getFieldMeta("email").error}</p>)}
                     </div>
 
                     {/* Password */}
@@ -46,19 +81,41 @@ const Login = () => {
                             </a>
                         </div>
                         <input
+
+                            name="password"
+                            id="password"
                             type="password"
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            value={formik.values.password}
                             required
-                            className="mt-2 w-full rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+                            className={`mt-2 w-full rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white
                          border border-gray-300 dark:border-gray-700
                          px-3 py-2 placeholder-gray-500 dark:placeholder-gray-400
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500
+                                ${
+                                getFieldMeta("password").error && getFieldMeta("password").touched
+                                ? "border-red-500"
+                                : "border-gray-300 dark:border-gray-600"
+                            }
+                            `
+                        }
                         />
+                        {getFieldMeta("password").error && getFieldMeta("password").touched && (
+                            <p className="text-red-500 text-sm mt-1">{getFieldMeta("password").error}</p>)}
                     </div>
 
                     {/* Bouton */}
                     <button
                         type="submit"
-                        className="w-full rounded-md bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2"
+                        disabled={!(formik.isValid && formik.dirty)}
+                        className={`w-full rounded-md bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2
+                        ${
+                            formik.isValid && formik.dirty
+                                ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                                : "bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
+                        }
+                        `}
                     >
                         Sign in
                     </button>
