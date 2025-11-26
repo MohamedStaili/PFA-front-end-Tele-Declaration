@@ -1,16 +1,16 @@
 import apiClient from "../client";
 
 export const login = async (credentials) => {
-    const { data } = await apiClient.post("/auth/login", credentials);
+    const { data } = await apiClient.post("/v1/auth/login", credentials);
     return data;
 };
 
 export const logout = async () => {
-    return apiClient.post("/auth/logout");
+    return apiClient.post("/v1/auth/logout");
 };
 
 export const getMe = async () => {
-    const { data } = await apiClient.get("/auth/me");
+    const { data } = await apiClient.get("/v1/accounts/me");
     return data;
 };
 

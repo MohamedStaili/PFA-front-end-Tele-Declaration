@@ -5,15 +5,7 @@ const apiClient = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
-});
-
-// Exemple d’interception pour ajouter le token JWT
-apiClient.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token"); // ou cookie
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+    withCredentials: true,
 });
 
 export default apiClient;

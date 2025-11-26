@@ -3,24 +3,26 @@ import {login, getMe, logout} from "./auth.api";
 import { queryKeys } from "../queryKeys";
 import useAuthStore from "../../stores/authStore.js";
 
-export const useMe = () =>
-    useQuery({
+export const useMe = () => {
+    const {setUser} = useAuthStore();
+    return useQuery({
         queryKey: [queryKeys.me],
         queryFn: getMe,
-        enabled: !!localStorage.getItem("token"),
+        enabled: false,
+        onSuccess: ({data}) => {
+            setUser(data);
+        }
     });
+}
 
 export const useLogin = () => {
     const qc = useQueryClient();
-    const { setToken, setUser } = useAuthStore();
-
     return useMutation({
         mutationFn: login,
-        onSuccess: (data) => {
-            setToken(data.token);
-            setUser(data.user);
+        onSuccess: () => {
             qc.invalidateQueries([queryKeys.me]);
         },
+
     });
 };
 export const useLogout = () => {

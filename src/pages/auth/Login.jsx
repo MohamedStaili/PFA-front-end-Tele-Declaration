@@ -1,8 +1,14 @@
 import Logo from "../../assets/logo_onicl.png";
 import {useFormik} from "formik";
-import* as Yup from "yup";
-import {useLogin} from "../../api/auth/auth.queries.js";
+import * as Yup from "yup";
+import {useLogin, useMe} from "../../api/auth/auth.queries.js";
+import useAuthStore from "../../stores/authStore.js";
+import {useState} from "react";
+
 const Login = () => {
+    const meQuery = useMe();
+    const LoginMutation = useLogin();
+    const [isLoading, setIsLoading] = useState(false);
     const initialValues = {email: "", password: ""};
     const formik = useFormik({
         initialValues: initialValues,
@@ -16,8 +22,27 @@ const Login = () => {
                 .min(8, "8 lettres minimum")
                 .required("Password is required")
         }),
-        onSubmit: async (values, { resetForm }) => {
-            useLogin(values);
+        onSubmit: async (values, {resetForm, setStatus}) => {
+            setIsLoading(true);
+            formik.setStatus(null);
+            LoginMutation.mutate(values, {
+                onSuccess: async () => {
+                    const res = await meQuery.refetch();
+                    if(res.error){
+                        formik.setStatus(res.error.message);
+                    }else {
+                       console.log(res.data);
+                    }
+                },
+                onError: (err) => {
+                    console.log(err.response.data);
+                    setStatus(err.response.data);
+                    //resetForm();
+                },
+                onSettled: () => {
+                    setIsLoading(false);
+                }
+            });
         }
     })
     const getFieldMeta = (name) => ({
@@ -26,7 +51,8 @@ const Login = () => {
     });
 
     return (
-        <div className="min-h-screen flex flex-col justify-center items-center px-6 py-12 lg:px-8 bg-gray-50 dark:bg-gray-900">
+        <div
+            className="min-h-screen flex flex-col justify-center items-center px-6 py-12 lg:px-8 bg-gray-50 dark:bg-gray-900">
             <div className="w-full max-w-sm">
                 {/* Logo */}
                 <img
@@ -41,7 +67,7 @@ const Login = () => {
                 </h2>
 
                 {/* Formulaire */}
-                <form className="mt-10 space-y-6">
+                <form className="mt-10 space-y-6" onSubmit={formik.handleSubmit}>
                     {/* Email */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -95,11 +121,11 @@ const Login = () => {
                          focus:outline-none focus:ring-2 focus:ring-indigo-500
                                 ${
                                 getFieldMeta("password").error && getFieldMeta("password").touched
-                                ? "border-red-500"
-                                : "border-gray-300 dark:border-gray-600"
+                                    ? "border-red-500"
+                                    : "border-gray-300 dark:border-gray-600"
                             }
                             `
-                        }
+                            }
                         />
                         {getFieldMeta("password").error && getFieldMeta("password").touched && (
                             <p className="text-red-500 text-sm mt-1">{getFieldMeta("password").error}</p>)}
@@ -117,9 +143,37 @@ const Login = () => {
                         }
                         `}
                     >
-                        Sign in
+                        {isLoading ?
+                            (<div className="flex items-center justify-center gap-2">
+                                    <svg
+                                        aria-hidden="true"
+                                        className="w-4 h-4 animate-spin"
+                                        viewBox="0 0 100 101"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <path
+                                            d="M100 50.5908C100 78.2051 77.6142 100.591
+                                               50 100.591C22.3858 100.591 0 78.2051
+                                               0 50.5908C0 22.9766 22.3858 0.59082
+                                               50 0.59082C77.6142 0.59082 100 22.9766
+                                               100 50.5908Z"
+                                            fill="currentColor"
+                                        />
+                                        <path
+                                            d="M93.9676 39.0409C96.393 38.4038
+            97.8624 35.9116 97.0079 33.5539..."
+                                            fill="currentFill"
+                                        />
+                                    </svg>
+                                    Loading...
+                                </div>
+                            ) : (
+                                "Sign In")
+                        }
                     </button>
                 </form>
+                {formik.status && <div className="text-red-500">{formik.status}</div>}
             </div>
         </div>
     )
