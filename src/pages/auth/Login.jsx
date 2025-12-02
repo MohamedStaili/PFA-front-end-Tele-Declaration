@@ -2,14 +2,18 @@ import Logo from "../../assets/logo_onicl.png";
 import {useFormik} from "formik";
 import * as Yup from "yup";
 import {useLogin, useMe} from "../../api/auth/auth.queries.js";
-import useAuthStore from "../../stores/authStore.js";
 import {useState} from "react";
+import {useNavigate} from "react-router-dom";
+import useAuthStore from "../../stores/authStore.js";
+
 
 const Login = () => {
-    const meQuery = useMe();
+    const navaigation = useNavigate();
     const LoginMutation = useLogin();
     const [isLoading, setIsLoading] = useState(false);
     const initialValues = {email: "", password: ""};
+    const authStore = useAuthStore();
+    const meQuery = useMe();
     const formik = useFormik({
         initialValues: initialValues,
         validationSchema: Yup.object({
@@ -27,11 +31,19 @@ const Login = () => {
             formik.setStatus(null);
             LoginMutation.mutate(values, {
                 onSuccess: async () => {
-                    const res = await meQuery.refetch();
-                    if(res.error){
-                        formik.setStatus(res.error.message);
-                    }else {
-                       console.log(res.data);
+                    //const user = authStore.user;
+                    const data = await meQuery.refetch();
+                    const user = data.data;
+                    console.log(user);
+                    if(user!==null) {
+                        const rolePrincipal = user.roles[0];
+                        console.log(rolePrincipal);
+                        if (rolePrincipal === "ROLE_Importateur") {
+                            navaigation('/importateur');
+                        }
+                        if (rolePrincipal === "ROLE_Admin") {
+                            navaigation('/admin');
+                        }
                     }
                 },
                 onError: (err) => {

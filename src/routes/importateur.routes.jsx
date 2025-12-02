@@ -10,7 +10,7 @@ import {requireRole} from "../utils/requireRole.js";
 export const importateurRoutes = {
     path: "/importateur",
     Component: ImportateurLayout,
-    loader: requireRole(['importateur']),
+    loader: requireRole('ROLE_Importateur'),
     children: [
         { index: true, Component: LazyLoad(Home) },
         { path: "about", Component: LazyLoad(About) },

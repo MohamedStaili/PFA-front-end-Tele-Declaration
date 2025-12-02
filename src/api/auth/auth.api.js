@@ -10,9 +10,11 @@ export const logout = async () => {
 };
 
 export const getMe = async () => {
-    const { data } = await apiClient.get("/v1/accounts/me");
-    return data;
+    const response = await apiClient.get("/v1/accounts/me");
+    //console.log(response.data);
+    return response.data;
 };
+
 
 export const refreshToken = async () => {
     const { data } = await apiClient.post("/auth/refresh");

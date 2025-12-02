@@ -9,7 +9,7 @@ const Contact = lazy(() => import("../pages/public/Contact"));
 export const adminRoutes = {
     path: "/admin",
     Component: AdminLayout,
-    loader: requireRole(['admin']),
+    loader: requireRole('ROLE_Admin'),
     children: [
         { index: true, Component: LazyLoad(Home) },
         { path: "about", Component: LazyLoad(About) },
